@@ -193,7 +193,22 @@ class GhcModiProcess
     if atom.config.get('haskell-ghc-mod.lowMemorySystem')
       queueName = 'lowmem'
     runArgs.dir ?= @getRootDir(runArgs.buffer) if runArgs.buffer?
-    unless backend?
+
+    skipBackend = false
+    
+    # eugenen
+    sfx = atom.config.get('haskell-ghc-mod.ignoreSuffix')
+    # atom.notifications.addInfo ("got sfx "+sfx)
+    if sfx.length > 1 and runArgs.buffer?
+      rgx = RegExp sfx
+      fn = runArgs.buffer.getPath() 
+      # atom.notifications.addInfo ("got buffer fn "+fn)
+      if fn.match rgx
+        # atom.notifications.addInfo "got sfx match " 
+        # throw new Error("ignoring suffix " + sfx)
+        skipBackend = true
+    
+    unless skipBackend and backend?
       return @initBackend(runArgs.dir).then (backend) =>
         if backend?
           @queueCmd(queueName, runArgs, backend)
@@ -227,6 +242,7 @@ class GhcModiProcess
         if settings.disable then throw new Error("Disable-ghc-mod found")
         if settings.suppressErrors then runArgs.suppressErrors = true
       .then ->
+        if skipBackend then throw new Error ("skipping suffix '#{sfx}'")
         backend.run runArgs
       .catch (err) ->
         Util.warn err

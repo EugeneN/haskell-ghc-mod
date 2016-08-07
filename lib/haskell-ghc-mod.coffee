@@ -6,6 +6,10 @@ module.exports = HaskellGhcMod =
       type: 'string'
       default: 'ghc-mod'
       description: 'Path to ghc-mod'
+    ignoreSuffix:
+      type: 'string'
+      default: ''
+      description: 'Ignore files with names matching suffix (length >= 2)'
     enableGhcModi:
       type: 'boolean'
       default: true
