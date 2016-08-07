@@ -208,11 +208,12 @@ class GhcModiProcess
         # throw new Error("ignoring suffix " + sfx)
         skipBackend = true
     
-    unless skipBackend and backend?
-      return @initBackend(runArgs.dir).then (backend) =>
-        if backend?
-          @queueCmd(queueName, runArgs, backend)
-        else
+    if not skipBackend
+      unless backend?
+        return @initBackend(runArgs.dir).then (backend) =>
+          if backend?
+            @queueCmd(queueName, runArgs, backend)
+          else
           []
     qe = (qn) =>
       q = @commandQueues[qn]
@@ -242,8 +243,10 @@ class GhcModiProcess
         if settings.disable then throw new Error("Disable-ghc-mod found")
         if settings.suppressErrors then runArgs.suppressErrors = true
       .then ->
-        if skipBackend then throw new Error ("skipping suffix '#{sfx}'")
-        backend.run runArgs
+        if skipBackend
+          throw new Error ("skipping suffix '#{sfx}'")
+        else
+          backend.run runArgs
       .catch (err) ->
         Util.warn err
         return []
